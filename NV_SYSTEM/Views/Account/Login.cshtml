@@ -1,0 +1,71 @@
+@{
+    Layout = "~/Views/Shared/_lightLayout.cshtml";
+    ViewBag.Title = "Authentification";
+}
+@model NV_SYSTEM.Models.LoginModel
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    
+        <div id="login">
+            <div class="title">
+                <h3>Authentification</h3>
+            </div>
+            <div class="inner">
+                <div class="form">
+                    <div class="fields">
+                        <div class="field">
+                            <div class="label">
+                                @Html.DevExpress().Label(settings =>
+                            {
+                                settings.Name = "UserNameLabel";
+                                settings.Text = "Login";
+                                settings.AssociatedControlName = "UserName";
+                            }).GetHtml()
+                            </div>
+                            <div class="input">
+                                @Html.EditorFor(m => m.Login)
+                                @Html.ValidationMessageFor(m => m.Login)
+                            </div>
+                        </div>
+                        <div class="field">
+                            <div class="label">
+                                @Html.DevExpress().Label(settings =>
+                        {
+                            settings.Name = "PasswordLabel";
+                            settings.Text = "Mot de passe";
+                            settings.AssociatedControlName = "Password";
+                        }).GetHtml()
+                            </div>
+                            <div class="input">
+                                @Html.EditorFor(m => m.Password)
+                                @Html.ValidationMessageFor(m => m.Password)
+                            </div>
+                        </div>
+                        <div class="field"></div>
+                        <div class="buttons">
+
+                            <div style="float:right;padding-top:9px;">
+                                @Html.DevExpress().Button(settings =>
+                        {
+                            settings.Name = "Button";
+                            settings.Text = "Connexion";
+                            settings.UseSubmitBehavior = true;
+                            settings.Images.Image.IconID = IconID.BusinessobjectsBocustomer16x16;
+                        }).GetHtml()
+                               
+                            </div>
+                            <div style="float:left;">
+                                <img border="0" src="~/Content/Images/" alt="">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="version"></div>
+                    <div class="msgError">
+                        @Html.ValidationSummary()
+                    </div>
+                </div>
+            </div>
+        </div>
+        }

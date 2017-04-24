@@ -1,0 +1,37 @@
+﻿<table>
+    <tr>
+        <td>
+            @Html.DevExpress().Button(
+            settings =>
+            {
+                settings.Name = "btnModesEsp";
+                settings.Width = 100;
+                settings.Height = 50;
+                settings.Text = "Espèce";
+                settings.Style[HtmlTextWriterStyle.Margin] = "5px";
+            }).GetHtml()
+        </td>
+        <td>
+            @Html.DevExpress().Button(
+            settings =>
+            {
+                settings.Name = "btnModesChq";
+                settings.Width = 100;
+                settings.Height = 50;
+                settings.Text = "Chèque";
+                settings.Style[HtmlTextWriterStyle.Margin] = "5px";
+            }).GetHtml()
+        </td>
+        <td>
+            @Html.DevExpress().Button(
+            settings =>
+            {
+                settings.Name = "btnModesCarte";
+                settings.Width = 100;
+                settings.Height = 50;
+                settings.Text = "Carte";
+                settings.Style[HtmlTextWriterStyle.Margin] = "5px";
+            }).GetHtml()
+        </td>
+    </tr>
+</table>

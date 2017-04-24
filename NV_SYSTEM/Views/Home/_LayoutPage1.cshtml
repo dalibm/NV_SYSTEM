@@ -1,0 +1,23 @@
+﻿@Html.DevExpress().FormLayout(flSettings =>
+        {
+            flSettings.Name = "flE";
+            flSettings.ColCount = 3;
+            flSettings.Width = Unit.Percentage(100);
+            flSettings.Items.Add(i =>
+            {
+                i.Name = "MontantTot";
+                i.ColSpan = 3;
+                i.Caption = "Montant total";
+                i.NestedExtension().TextBox(tb =>
+                {
+                    tb.Name = "tbTot1";
+                    tb.Height = 50;
+                    tb.Style[HtmlTextWriterStyle.FontSize] = "36px";
+                    tb.Properties.ClientSideEvents.Init = "function(s,e){s.inputElement.type = 'Number'}";
+                    tb.ReadOnly = true;
+                    tb.Width = Unit.Percentage(80);
+                    tb.Properties.ClientInstanceName = "tbTot1";
+                });
+            }); //Montant Total
+        }).GetHtml();
+

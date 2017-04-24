@@ -1,0 +1,16 @@
+﻿<table>
+    <tr>
+        <td colspan="3">
+            @Html.DevExpress().TextBox(
+                settings =>
+                {
+                    settings.Name = "tbValeur";
+                    settings.Properties.ClientInstanceName = "tbValeur";
+                    settings.Width = 150;
+                    settings.Properties.NullText = "Code article...";
+                    settings.Style[HtmlTextWriterStyle.Margin] = "5px 2px";
+                    settings.ReadOnly = true;
+                }).GetHtml()
+        </td>
+    </tr>
+</table>

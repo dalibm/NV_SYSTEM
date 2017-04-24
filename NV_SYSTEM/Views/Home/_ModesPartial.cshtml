@@ -1,0 +1,43 @@
+﻿<table>
+    <tr>
+        <td>
+            @Html.DevExpress().Button(
+            settings =>
+            {
+                settings.Name = "btnModePaieEnAtt";
+                settings.Width = 150;
+                settings.Height = 130;
+                settings.Text = "Mettre En Attente";
+                settings.Style[HtmlTextWriterStyle.Margin] = "5px";
+            }).GetHtml()
+        </td>
+    </tr>
+        <tr>
+            <td>
+                @Html.DevExpress().Button(
+            settings =>
+            {
+                settings.Name = "btnModePaieBonCo";
+                settings.Width = 150;
+                settings.Height = 130;
+                settings.Text = "Bon de Commande";
+                settings.Style[HtmlTextWriterStyle.Margin] = "5px";
+            }).GetHtml()
+            </td>
+</tr>
+ 
+    <tr>
+        <td>
+            @Html.DevExpress().Button(
+            settings =>
+            {
+                settings.Name = "btnModePaieAv";
+                settings.Width = 150;
+                settings.Height = 130;
+                settings.Text = "Encaisser";
+                settings.Style[HtmlTextWriterStyle.Margin] = "5px";
+                settings.ClientSideEvents.Click = "Encaisser";
+            }).GetHtml()
+        </td>
+    </tr>
+</table>

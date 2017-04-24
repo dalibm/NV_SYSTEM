@@ -1,0 +1,422 @@
+@{ 
+    ViewBag.Title = "NV Caisse";
+}
+<script type="text/javascript">
+    var mp = 0;
+  
+    function OnPaveNumClick(s, e) {
+        tbValeur.SetText(tbValeur.GetText() + s.GetText());
+    }
+    function OnPaveCommandClick(s, e) {
+        if (s.GetText() == "C") {
+            tbValeur.SetText(tbValeur.GetText().substring(0, tbValeur.GetText().length - 1));
+        }
+        if (s.GetText() == "E") {
+            PushArticle(tbValeur.GetText());
+            tbValeur.SetText("");
+        }
+    }
+    function PushArticle(barcode) {
+        if (barcode.length != 13) {
+            alert("Code article incorrect !");
+        } else {
+            $.ajax({
+                url: '@Url.Action("PushArticle", "Home")',
+                method: "POST",
+                data: { barcode: barcode },
+                success: function (data) {
+                    if (data.Result != 2000) {
+                        alert(data.Result + '<br>' +data.Message);
+                    } else {
+                        GridView.PerformCallback();
+                    }
+                },
+                error: function (err, xhr) {
+                    alert("Erreur systeme !");
+                }
+            });
+        }
+    }
+    function Encaisser(s, e) {
+        if (GridView.GetVisibleRowsOnPage() > 0) {
+            PopupEncaisser.Show();
+        } else {
+            alert("Aucun article enregistré");
+        }
+    }
+    function ValiderEncaissement(s, e) {
+        var mt = tbTot.GetValue();
+        var ch = "";
+        switch (mp) {
+            case 1:
+                $.post('@Url.Action("ValiderCommande", "Home")?mt='+mt+'&mp='+mp+'&ch='+ch, function (data) {
+                    if (data.Result == 2000) {
+                        PopupEncaisser.Hide();
+                    }
+                });
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+            case 4:
+                break;
+            default:
+                break;
+        }
+       
+    }
+    function Revenir(s, e) {
+        PopupEncaisser.Hide();
+    }
+    function AnnulerCommande(s, e) {
+        var c = confirm("Etes-vous sur de vouloir annuler ?");
+        if (c) {
+            $.post('@Url.Action("AnnulerCommande", "Home")', function (data) {
+                if (data.Result == 2000) {
+                    PopupEncaisser.Hide();
+                    GridView.PerformCallback();
+                }
+            });
+        }
+    }
+    function PopupEncaisserShown(s, e) {
+        var groups = [];
+        groups.push(flEncaissement.GetItemByName("PaiementEsp"));
+        groups.push(flEncaissement.GetItemByName("PaiementChq"));
+        groups.push(flEncaissement.GetItemByName("PaiementTPE"));
+        groups.push(flEncaissement.GetItemByName("PaiementMultip"));
+        groups.map(function (e) {
+            e.SetVisible(false);
+        });
+        tbTot.SetValue(parseFloat(Math.round(GridView.cpMontantTotal * 100) / 100).toFixed(3));
+        tbTot1.SetValue(parseFloat(Math.round(GridView.cpMontantTotal * 100) / 100).toFixed(3));
+        $(tbRc.inputElement).css('color', 'green');
+        $(tbRd.inputElement).css('color', 'blue');
+    }
+    function PopupEncaisserCloseUp(s, e) {
+        tbValeur.SetText("");
+        rblMethodeP.SetValue(null);
+    }
+    function MethodePSelectIndexChanged(s, e) {
+        if (s.GetSelectedItem() != null) {
+            mp = s.GetSelectedItem().value;
+            switch (s.GetSelectedItem().value) {
+                case 1:
+                    flEncaissement.GetItemByName("PaiementEsp").SetVisible(true);
+                    flEncaissement.GetItemByName("PaiementChq").SetVisible(false);
+                    flEncaissement.GetItemByName("PaiementTPE").SetVisible(false);
+                    flEncaissement.GetItemByName("PaiementMultip").SetVisible(false);
+                    break;
+                case 2:
+                    flEncaissement.GetItemByName("PaiementEsp").SetVisible(false);
+                    flEncaissement.GetItemByName("PaiementChq").SetVisible(true);
+                    flEncaissement.GetItemByName("PaiementTPE").SetVisible(false);
+                    flEncaissement.GetItemByName("PaiementMultip").SetVisible(false);
+                    break;
+                case 3:
+                    flEncaissement.GetItemByName("PaiementEsp").SetVisible(false);
+                    flEncaissement.GetItemByName("PaiementChq").SetVisible(false);
+                    flEncaissement.GetItemByName("PaiementTPE").SetVisible(true);
+                    flEncaissement.GetItemByName("PaiementMultip").SetVisible(false);
+                    break;
+                case 4:
+                    flEncaissement.GetItemByName("PaiementEsp").SetVisible(false);
+                    flEncaissement.GetItemByName("PaiementChq").SetVisible(false);
+                    flEncaissement.GetItemByName("PaiementTPE").SetVisible(false);
+                    flEncaissement.GetItemByName("PaiementMultip").SetVisible(true);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    function MontantRecuValueChanged(s, e) {
+        var mr = parseFloat(tbRc.GetValue());
+        var mt = tbTot.GetValue();
+        var reste = parseFloat(Math.round((mr - mt) * 100) / 100).toFixed(3);
+        if (reste >= 0) {
+            tbRd.SetValue(reste);
+        } else {
+            alert("Montant reçu inférieur au montant total");
+            tbRc.SetValue("");
+            tbRd.SetValue("");
+        }
+    }
+    function OnPaieMultipValueChanged(s, e) {
+        var esp = parseFloat(Math.round((tbMontEsp.GetValue() * 100) / 100).toFixed(3));
+        var chq = parseFloat(Math.round((tbMontChq.GetValue() * 100) / 100).toFixed(3));
+        var tpe = parseFloat(Math.round((tbMontTPE.GetValue() * 100) / 100).toFixed(3));
+        console.log(tbTot.GetValue() + " | " + (esp + chq + tpe).toFixed(3));
+        if (tbTot.GetValue() > (esp + chq + tpe)) {
+            alert("Montant saisi inferieur au montant total");
+            tbMontEsp.SetValue("");
+            tbMontChq.SetValue("");
+            tbMontTPE.SetValue("");
+        }
+    }
+</script>
+<div id="container1">
+    <div id="col1">
+        <div id="container7">@Html.Partial("_CodeaBarre")</div> 
+        
+        <div id="container2">@Html.Partial("_GridPartial")</div>
+        <div id="container3"><span>N° Ticket 00000000222</span></div>
+    </div>
+    <div id="col2">
+        <div id="container8">@Html.Partial("_LayoutPage1")</div>
+        <div id="container6">@Html.Partial("_PavePartial")</div>
+        <div id="container4">@Html.Partial("_ModesPartial")</div>
+    </div>
+</div>
+
+@Html.DevExpress().PopupControl(settings =>
+{
+    settings.Name = "PopupEncaisser";
+    settings.HeaderText = "Encaisser";
+    settings.Modal = true;
+    settings.PopupHorizontalAlign = PopupHorizontalAlign.WindowCenter;
+    settings.PopupVerticalAlign = PopupVerticalAlign.Above;
+    settings.ShowFooter = true;
+    settings.CloseAction = CloseAction.None;
+    settings.ShowCloseButton = false;
+    settings.ShowOnPageLoad = false;
+    settings.PopupAnimationType = AnimationType.None;
+    settings.AllowDragging = false;
+    settings.Width = System.Web.UI.WebControls.Unit.Pixel(700);
+    settings.ClientSideEvents.Shown = "PopupEncaisserShown";
+    settings.ClientSideEvents.CloseUp = "PopupEncaisserCloseUp";
+
+    settings.SetContent(() =>
+    {
+        Html.DevExpress().FormLayout(flSettings =>
+        {
+            flSettings.Name = "flEncaissement";
+            flSettings.ColCount = 3;
+            flSettings.Width = Unit.Percentage(100);
+            flSettings.Items.Add(i =>
+            {
+                i.Name = "MontantTot";
+                i.ColSpan = 3;
+                i.Caption = "Montant total";
+                i.NestedExtension().TextBox(tb =>
+                {
+                    tb.Name = "tbTot";
+                    tb.Height = 20;
+                    tb.Style[HtmlTextWriterStyle.FontSize] = "18px";
+                    tb.Properties.ClientSideEvents.Init = "function(s,e){s.inputElement.type = 'Number'}";
+                    tb.ReadOnly = true;
+                    tb.Width = Unit.Percentage(80);
+                    tb.Properties.ClientInstanceName = "tbTot";
+                });
+            }); //Montant Total
+            flSettings.Items.AddGroupItem(grp =>
+            {
+                grp.Name = "MethodeP";
+                grp.Caption = "Méthode de paiement";
+                grp.ColSpan = 3;
+                grp.ColCount = 3;
+                grp.Items.Add(i =>
+                {
+                    i.Name = "MethodeP_items";
+                    i.ShowCaption = DefaultBoolean.False;
+                    i.ColSpan = 3;
+                    i.NestedExtension().RadioButtonList(rbl =>
+                    {
+                        rbl.Name = "rblMethodeP";
+                        rbl.Properties.ClientInstanceName = "rblMethodeP";
+                        rbl.Width = Unit.Percentage(100);
+                        rbl.Properties.RepeatLayout = RepeatLayout.Flow;
+                        rbl.Properties.RepeatDirection = RepeatDirection.Horizontal;
+                        rbl.Properties.RepeatColumns = 4;
+                        rbl.Properties.ValueField = "ID";
+                        rbl.Properties.TextField = "Designation";
+                        rbl.Properties.ValueType = typeof(int);
+                        rbl.Properties.DataSource = NV_SYSTEM.Models.ModelHelpers.GetTypePaiment(ViewBag.XpoSession);
+                        rbl.Properties.ClientSideEvents.SelectedIndexChanged = "MethodePSelectIndexChanged";
+                    });
+                });
+            }); //Choix methode de paiement
+            flSettings.Items.AddGroupItem(grp =>
+            {
+                grp.Name = "PaiementEsp";
+                grp.Caption = "Paiement";
+                grp.ColSpan = 3;
+                grp.ColCount = 2;
+                grp.Items.Add(i =>
+                {
+                    i.Name = "Montantrc";
+                    i.Caption = "Montant reçu";
+                    i.NestedExtension().TextBox(tb =>
+                    {
+                        tb.Name = "tbRc";
+                        tb.Height = 20;
+                        tb.Style[HtmlTextWriterStyle.FontSize] = "18px";
+                        tb.Style[HtmlTextWriterStyle.Color] = "green";
+                        tb.Properties.ClientInstanceName = "tbRc";
+                        tb.Properties.ClientSideEvents.Init = "function(s,e){s.inputElement.type = 'Number';}";
+                        tb.Properties.ClientSideEvents.ValueChanged = "MontantRecuValueChanged";
+                    });
+                });
+                grp.Items.Add(i =>
+                {
+                    i.Name = "Montantrd";
+                    i.Caption = "Montant à rendre";
+                    i.NestedExtension().TextBox(tb =>
+                    {
+                        tb.Name = "tbRd";
+                        tb.Height = 20;
+                        tb.Style[HtmlTextWriterStyle.FontSize] = "18px";
+                        tb.ReadOnly = true;
+                        tb.Properties.ClientSideEvents.Init = "function(s,e){s.inputElement.type = 'Number';}";
+                        tb.Properties.ClientInstanceName = "tbRd";
+                    });
+                });
+            }); //PaiementEsp
+            flSettings.Items.AddGroupItem(grp =>
+            {
+                grp.Name = "PaiementChq";
+                grp.Caption = "Paiement";
+                grp.ColSpan = 3;
+                grp.ColCount = 1;
+                grp.Items.Add(i =>
+                {
+                    i.Name = "NumChq";
+                    i.Caption = "Numéro du chèque";
+                    i.NestedExtension().TextBox(tb =>
+                    {
+                        tb.Name = "tbNumChq";
+                        tb.Height = 20;
+                        tb.Style[HtmlTextWriterStyle.FontSize] = "18px";
+                        tb.Properties.ClientSideEvents.Init = "function(s,e){s.inputElement.type = 'Number';}";
+                        tb.Properties.ClientInstanceName = "tbNumChq";
+                    });
+                });
+            }); //PaiementChq
+            flSettings.Items.AddGroupItem(grp =>
+            {
+                grp.Name = "PaiementTPE";
+                grp.Caption = "Paiement";
+                grp.ColSpan = 3;
+                grp.ColCount = 1;
+                grp.Items.Add(i =>
+                {
+                    i.Name = "NumTick";
+                    i.Caption = "Numéro du ticket";
+                    i.NestedExtension().TextBox(tb =>
+                    {
+                        tb.Name = "tbNumTick";
+                        tb.Height = 20;
+                        tb.Style[HtmlTextWriterStyle.FontSize] = "18px";
+                        tb.Properties.ClientSideEvents.Init = "function(s,e){s.inputElement.type = 'Number';}";
+                        tb.Properties.ClientInstanceName = "tbNumTick";
+                    });
+                });
+            }); //PaiementTPE
+            flSettings.Items.AddGroupItem(grp =>
+            {
+                grp.Name = "PaiementMultip";
+                grp.Caption = "Paiement";
+                grp.ColSpan = 3;
+                grp.ColCount = 2;
+                grp.Items.Add(i =>
+                {
+                    i.Name = "MontEsp";
+                    i.Caption = "Espèce";
+                    i.ColSpan = 2;
+                    i.NestedExtension().TextBox(tb =>
+                    {
+                        tb.Name = "tbMontEsp";
+                        tb.Height = 20;
+                        tb.Style[HtmlTextWriterStyle.FontSize] = "18px";
+                        tb.Properties.ClientSideEvents.Init = "function(s,e){s.inputElement.type = 'Number';}";
+                        tb.Properties.ClientSideEvents.ValueChanged = "OnPaieMultipValueChanged";
+                        tb.Properties.ClientInstanceName = "tbMontEsp";
+                    });
+                }); //Montant Espèce
+                grp.Items.Add(i =>
+                {
+                    i.Name = "MontChq";
+                    i.Caption = "Montant chèque";
+                    i.NestedExtension().TextBox(tb =>
+                    {
+                        tb.Name = "tbMontChq";
+                        tb.Height = 20;
+                        tb.Style[HtmlTextWriterStyle.FontSize] = "18px";
+                        tb.Properties.ClientSideEvents.Init = "function(s,e){s.inputElement.type = 'Number';}";
+                        tb.Properties.ClientSideEvents.ValueChanged = "OnPaieMultipValueChanged";
+                        tb.Properties.ClientInstanceName = "tbMontChq";
+                    });
+                }); //Montant Chq
+                grp.Items.Add(i =>
+                {
+                    i.Name = "NumChqPlus";
+                    i.Caption = "Numéro chèque";
+                    i.NestedExtension().TextBox(tb =>
+                    {
+                        tb.Name = "tbNumChqPlus";
+                        tb.Height = 20;
+                        tb.Style[HtmlTextWriterStyle.FontSize] = "18px";
+                        tb.Properties.ClientSideEvents.Init = "function(s,e){s.inputElement.type = 'Number';}";
+                        tb.Properties.ClientInstanceName = "tbNumChqPlus";
+                    });
+                }); //Numero Chq
+                grp.Items.Add(i =>
+                {
+                    i.Name = "MontTPE";
+                    i.Caption = "Montant TPE";
+                    i.NestedExtension().TextBox(tb =>
+                    {
+                        tb.Name = "tbMontTPE";
+                        tb.Height = 20;
+                        tb.Style[HtmlTextWriterStyle.FontSize] = "18px";
+                        tb.Properties.ClientSideEvents.Init = "function(s,e){s.inputElement.type = 'Number';}";
+                        tb.Properties.ClientInstanceName = "tbMontTPE";
+                        tb.Properties.ClientSideEvents.ValueChanged = "OnPaieMultipValueChanged";
+                    });
+                }); //Montant TPE
+                grp.Items.Add(i =>
+                {
+                    i.Name = "NumTPEPlus";
+                    i.Caption = "Numéro Ticket";
+                    i.NestedExtension().TextBox(tb =>
+                    {
+                        tb.Name = "tbNumTPEPlus";
+                        tb.Height = 20;
+                        tb.Style[HtmlTextWriterStyle.FontSize] = "18px";
+                        tb.Properties.ClientSideEvents.Init = "function(s,e){s.inputElement.type = 'Number';}";
+                        tb.Properties.ClientInstanceName = "tbNumTPEPlus";
+                    });
+                }); //Numero ticket TPE
+            }); //PaiementMultip
+        }).GetHtml();
+    });
+
+    settings.ClientSideEvents.BeginCallback = "";
+    settings.SetFooterTemplateContent(c =>
+    {
+        Html.ViewContext.Writer.Write("<div style=\"overflow: hidden\"><div style=\"padding: 3px; float: right;\">");
+        Html.DevExpress().Button(buttonsettings =>
+        {
+            buttonsettings.Name = "BtValiderEdit";
+            buttonsettings.Text = "Valider";
+            buttonsettings.ClientSideEvents.Click = "ValiderEncaissement";
+        }).GetHtml();
+        Html.ViewContext.Writer.Write("</div><div style=\"padding: 3px; float: right;\">");
+        Html.DevExpress().Button(buttonsettings =>
+        {
+            buttonsettings.Name = "BtCancelEdit";
+            buttonsettings.Text = "Revenir";
+            buttonsettings.ClientSideEvents.Click = "Revenir";
+        }).GetHtml();
+        Html.ViewContext.Writer.Write("</div><div style=\"padding: 3px; float: right;\">");
+        Html.DevExpress().Button(buttonsettings =>
+        {
+            buttonsettings.Name = "BtExit";
+            buttonsettings.Text = "Annuler la commande";
+            buttonsettings.ClientSideEvents.Click = "AnnulerCommande";
+        }).GetHtml();
+        Html.ViewContext.Writer.Write("</div></div>");
+    });
+}).GetHtml();
+   
